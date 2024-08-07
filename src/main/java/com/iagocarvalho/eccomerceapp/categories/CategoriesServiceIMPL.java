@@ -2,9 +2,14 @@ package com.iagocarvalho.eccomerceapp.categories;
 
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.iagocarvalho.eccomerceapp.exceptions.APIException;
 import com.iagocarvalho.eccomerceapp.exceptions.MyResourceNotFoundException;
@@ -15,24 +20,60 @@ public class CategoriesServiceIMPL implements CategoriesService {
 	@Autowired
 	private CategoiresRepository categoiresRepository;
 
+	@Autowired
+	private ModelMapper modelMapper;
+
 
 
 	@Override
-	public List<CategoryModel> getAllCategories() {
+	public CategoryResponse getAllCategories() {
 		List<CategoryModel> categories = categoiresRepository.findAll();
 		if (categories.isEmpty() ) {
 			throw new APIException("No category created till now");
 		}
-		return categoiresRepository.findAll();
+		List<CategoryDTO> categoryDTOS =
+				categories.stream()
+						.map(categoryModel -> modelMapper.map(
+						categoryModel, CategoryDTO.class))
+						.collect(Collectors.toList());
+		CategoryResponse categoryResponse = new CategoryResponse();
+		categoryResponse.setContent(categoryDTOS);
+		return categoryResponse;
 	}
 
 	@Override
-	public void createCategory(CategoryModel categoryModel) {
-		CategoryModel savedCategori = categoiresRepository.findByCategoryName(categoryModel.getCategoryName());
+	public CategoryResponse getCategoriesPage(Integer pageNumber, Integer pageSize) {
+		Pageable pageable = PageRequest.of(pageNumber, pageSize);
+		Page<CategoryModel> categoryModelPage = categoiresRepository.findAll(pageable);
+		List<CategoryModel> categories = categoryModelPage.getContent();
+		if (categories.isEmpty() ) {
+			throw new APIException("No category created till now");
+		}
+		List<CategoryDTO> categoryDTOS =
+				categories.stream()
+						.map(categoryModel -> modelMapper.map(
+								categoryModel, CategoryDTO.class)).toList();
+
+		CategoryResponse categoryResponse = new CategoryResponse();
+		categoryResponse.setContent(categoryDTOS);
+		categoryResponse.setPageNumbe(categoryModelPage.getNumber());
+		categoryResponse.setPageSize(categoryModelPage.getSize());
+		categoryResponse.setTotalElements(categoryModelPage.getTotalElements());
+		categoryResponse.setTotalPgs(categoryModelPage.getTotalPages());
+		categoryResponse.setLastPage(categoryModelPage.isLast());
+		return categoryResponse;
+	}
+
+	@Override
+	public CategoryDTO createCategory(CategoryDTO categoryDTO) {
+		CategoryModel categoryModel = modelMapper.map(categoryDTO, CategoryModel.class);
+		CategoryModel savedCategori = categoiresRepository.findByCategoryName(categoryDTO.getCategoryName());
 		if (savedCategori != null) {
-			throw new APIException("Category with the name " + categoryModel.getCategoryName() + "alredy exists!!");
+			throw new APIException("Category with the name " + categoryDTO.getCategoryName() + "alredy exists!!");
 		}else {
-			categoiresRepository.save(categoryModel);
+			  CategoryModel savedCAtedogry =  categoiresRepository.save(categoryModel);
+			  CategoryDTO savedCAtedogryDTO = modelMapper.map(savedCAtedogry, CategoryDTO.class);
+			  return  savedCAtedogryDTO;
 		}
 	}
 
@@ -49,7 +90,7 @@ public class CategoriesServiceIMPL implements CategoriesService {
 	}
 
 	@Override
-	public CategoryModel updateCategorie(CategoryModel categoryModel, Long categorieId) {
+	public CategoryDTO updateCategorie(CategoryDTO categoryDTO, Long categorieId) {
 //		List<CategoryModel> CategoriList = categoiresRepository.findAll();
 //		  Optional<CategoryModel> optionalCategory = CategoriList.stream()
 //	                .filter(c -> c.getCategoryId().equals(categorieId))
@@ -60,14 +101,16 @@ public class CategoriesServiceIMPL implements CategoriesService {
 //	            existingCategory.setCategoryName(categoryModel.getCategoryName());
 //	            CategoryModel savedCategory = categoiresRepository.save(existingCategory);
 //	            return savedCategory;
-		CategoryModel categorieUpdate = categoiresRepository.findById(categorieId).orElse(null);
-		if (categorieUpdate != null) {
-			categorieUpdate.setCategoryName(categoryModel.getCategoryName());
-			CategoryModel UpdatedCategori = categoiresRepository.save(categorieUpdate);
-			return UpdatedCategori;
-		} else {
-			throw new  MyResourceNotFoundException("Category", "categoryId", categorieId);
-		}
+		CategoryModel categorieUpdate = categoiresRepository.findById(categorieId).orElseThrow(
+				() ->  new  MyResourceNotFoundException("Category", "categoryId", categorieId));
+
+			CategoryModel categoryModel = modelMapper.map(categoryDTO, CategoryModel.class);
+			categoryModel.setCategoryId(categorieId);
+			categorieUpdate = categoiresRepository.save(categoryModel);
+			return modelMapper.map(categorieUpdate, CategoryDTO.class);
+
+
+
 	}
 
 //	private CategoryModel findCategorieById(Long categorieId) {

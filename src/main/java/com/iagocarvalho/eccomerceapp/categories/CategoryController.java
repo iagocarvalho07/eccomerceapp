@@ -3,17 +3,12 @@ package com.iagocarvalho.eccomerceapp.categories;
 
 import java.util.List;
 
+import com.iagocarvalho.eccomerceapp.config.AppConstants;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class CategoryController {
@@ -23,13 +18,21 @@ public class CategoryController {
 	
 	
 	@GetMapping("/api/public/categories")
-	public ResponseEntity<List<CategoryModel>> getAllCategories(){
-		List<CategoryModel> categories =  categoriesServiceIMPL.getAllCategories();
-		return  new ResponseEntity<List<CategoryModel>>(categories, HttpStatus.OK);
+	public ResponseEntity<CategoryResponse> getAllCategories(){
+		CategoryResponse categories =  categoriesServiceIMPL.getAllCategories();
+		return  new ResponseEntity<CategoryResponse>(categories, HttpStatus.OK);
+	}
+
+	@GetMapping("/api/public/categoriesPage")
+	public ResponseEntity<CategoryResponse> getCategoriesPage(
+			@RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+			@RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize) {
+		CategoryResponse categories =  categoriesServiceIMPL.getCategoriesPage(pageNumber, pageSize);
+		return  new ResponseEntity<CategoryResponse>(categories, HttpStatus.OK);
 	}
 	
 	@PostMapping("/api/public/categories")
-	public ResponseEntity<String> createCategrory(@Valid @RequestBody CategoryModel categoryModel) {
+	public ResponseEntity<String> createCategrory(@Valid @RequestBody CategoryDTO categoryModel) {
 		categoriesServiceIMPL.createCategory(categoryModel);
 		return  new ResponseEntity<>("CAtegory create ", HttpStatus.CREATED);
 	}
@@ -50,10 +53,10 @@ public class CategoryController {
 	}
 	
 	@PutMapping("/api/public/categories/{categorieId}")
-	public ResponseEntity<String> updateCategories(
+	public ResponseEntity<CategoryDTO> updateCategories(
 			@Valid
 			@PathVariable Long categorieId,
-			@RequestBody CategoryModel categoryModel){
+			@RequestBody CategoryDTO categoryDTO){
 //		try {
 //
 //			CategoryModel saveCategorie =  categoriesServiceIMPL.updateCategorie(categoryModel, categorieId);
@@ -61,8 +64,8 @@ public class CategoryController {
 //		} catch (ResponseStatusException e) {
 //			return new ResponseEntity<String>(e.getReason(), e.getStatusCode());
 //		}
-		CategoryModel saveCategorie =  categoriesServiceIMPL.updateCategorie(categoryModel, categorieId);
-		return  ResponseEntity.status( HttpStatus.OK).body(" category with category id " +  categorieId + saveCategorie);
+		CategoryDTO saveCategorieDTP =  categoriesServiceIMPL.updateCategorie(categoryDTO, categorieId);
+		return new  ResponseEntity<>(saveCategorieDTP, HttpStatus.OK);
 
 		
 		
