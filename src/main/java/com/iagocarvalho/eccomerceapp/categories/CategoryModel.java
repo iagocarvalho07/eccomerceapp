@@ -1,12 +1,11 @@
 package com.iagocarvalho.eccomerceapp.categories;
 
+import java.util.List;
 import java.util.Objects;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.iagocarvalho.eccomerceapp.product.Product;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -21,38 +20,54 @@ public class CategoryModel {
 	@NotBlank
 	@Size(min = 5, message = "Category name must be have a min 5 caracter")
 	private String categoryName;
+
+
+	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+	private List<Product> products;
+
 	public CategoryModel() {
 	}
-	public CategoryModel(Long categoryId, String categoryName) {
+
+	public CategoryModel(Long categoryId, String categoryName, List<Product> products) {
 		this.categoryId = categoryId;
 		this.categoryName = categoryName;
+		this.products = products;
 	}
+
 	public Long getCategoryId() {
 		return categoryId;
 	}
+
 	public void setCategoryId(Long categoryId) {
 		this.categoryId = categoryId;
 	}
-	public String getCategoryName() {
+
+	public @NotBlank @Size(min = 5, message = "Category name must be have a min 5 caracter") String getCategoryName() {
 		return categoryName;
 	}
-	public void setCategoryName(String categoryName) {
+
+	public void setCategoryName(@NotBlank @Size(min = 5, message = "Category name must be have a min 5 caracter") String categoryName) {
 		this.categoryName = categoryName;
 	}
+
+	public List<Product> getProducts() {
+		return products;
+	}
+
+	public void setProducts(List<Product> products) {
+		this.products = products;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		CategoryModel that = (CategoryModel) o;
+		return Objects.equals(categoryId, that.categoryId) && Objects.equals(categoryName, that.categoryName) && Objects.equals(products, that.products);
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(categoryName, categoryId);
+		return Objects.hash(categoryId, categoryName, products);
 	}
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		CategoryModel other = (CategoryModel) obj;
-		return Objects.equals(categoryName, other.categoryName) && Objects.equals(categoryId, other.categoryId);
-	}
-	
 }
