@@ -53,7 +53,7 @@ public class ProductServiceImpl implements ProductService {
         if (ifProductNotPresent){
             product.setImage("defult.png");
             product.setCategory(categoryModel);
-            double especialPrice = product.getPrice() - ((product.getDisconte() * 0.01) * product.getPrice());
+            double especialPrice = product.getPrice() - ((product.getDiscount() * 0.01) * product.getPrice());
             product.setSpecialPrice(especialPrice);
             Product saveProduct = productRepository.save(product);
             return modelMapper.map(saveProduct, ProductDTO.class);
@@ -138,7 +138,7 @@ public class ProductServiceImpl implements ProductService {
         productFromDB.setDescription(product.getDescription());
         productFromDB.setQuantity(product.getQuantity());
         productFromDB.setPrice(product.getPrice());
-        productFromDB.setDisconte(product.getDisconte());
+        productFromDB.setDiscount(product.getDiscount());
         productFromDB.setSpecialPrice(product.getSpecialPrice());
         Product savedProduct = productRepository.save(productFromDB);
         return  modelMapper.map(savedProduct, ProductDTO.class);
