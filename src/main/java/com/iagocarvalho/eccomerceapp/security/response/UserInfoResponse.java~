@@ -20,14 +20,6 @@ public class UserInfoResponse {
         this.jwtToken = jwtToken;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getJwtToken() {
         return jwtToken;
     }
